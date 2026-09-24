@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>哪个城市最旺你</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#29283a;min-height:100vh;background:radial-gradient(circle at 20% 10%,rgba(123,102,255,.16),transparent 30%),radial-gradient(circle at 80% 20%,rgba(255,150,190,.14),transparent 28%),linear-gradient(135deg,#faf8ff,#f4f6ff 55%,#fff8fc)}
+.container{width:min(92%,760px);margin:auto}
+#home,#loading,#result{min-height:100vh;padding:40px 0}
+#home{display:flex;align-items:center}
+.hero{text-align:center;width:100%}
+.logo{display:inline-block;padding:8px 18px;border-radius:999px;background:#ffffffbf;border:1px solid #8278b329;color:#7669b7;font-size:13px;letter-spacing:2px;margin-bottom:22px}
+.title{font-size:clamp(38px,10vw,70px);line-height:1.08;font-weight:800;background:linear-gradient(120deg,#6156a8,#8675d1,#ba7ca8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:18px}
+.subtitle{color:#77748b;font-size:15px;line-height:1.8;max-width:520px;margin:0 auto 42px}
+.input-card,.loading-card,.result-card{background:#ffffffc7;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #ffffffe6;box-shadow:0 20px 60px #5348821f;border-radius:28px}
+.input-card{padding:30px;max-width:600px;margin:auto}
+.input-title{font-size:18px;font-weight:700;margin-bottom:22px}
+.date-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px}
+.date-box label{display:block;font-size:12px;color:#9995aa;margin-bottom:7px;text-align:left}
+.date-box select{width:100%;height:50px;border:1px solid #e7e3f0;border-radius:14px;background:#fff;color:#38354b;padding:0 12px;font-size:15px;outline:none}
+.start-btn{width:100%;height:56px;border:0;border-radius:18px;margin-top:24px;color:white;font-size:16px;font-weight:700;cursor:pointer;background:linear-gradient(110deg,#6658ae,#8c79d2,#b67aa8);box-shadow:0 12px 28px #6c5baf40}
+.tip{font-size:12px;color:#aaa6b7;margin-top:15px}
+#loading{display:none;align-items:center;justify-content:center}
+.loading-card{width:min(90%,460px);padding:45px 30px;text-align:center}
+.loader{width:52px;height:52px;margin:0 auto 25px;border:5px solid #e8e4f4;border-top-color:#7769bd;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:18px;font-weight:700;margin-bottom:10px}
+.loading-text{font-size:13px;color:#918ca4}
+#result{display:none}
+.result-card{padding:28px;max-width:650px;margin:auto}
+.result-kicker{text-align:center;color:#8375bb;font-size:13px;letter-spacing:2px;margin-bottom:12px}
+.result-city{text-align:center;font-size:clamp(40px,11vw,66px);font-weight:800;background:linear-gradient(120deg,#6156a8,#b67aa8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-type{text-align:center;color:#77748b;margin:10px 0 25px}
+.elements{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.element{padding:7px 13px;border-radius:999px;background:#f0edf9;color:#685ca3;font-size:13px}
+.reason{background:#fff;border-radius:20px;padding:20px;line-height:1.9;color:#555166;font-size:14px}
+.reason strong{color:#6558a8}
+.top3{margin-top:22px}
+.top3 h3{text-align:center;font-size:16px;margin-bottom:12px}
+.top-item{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:#fff;border-radius:14px;margin-bottom:8px;font-size:14px}
+.badge{font-size:12px;color:#8a80a7}
+.disclaimer{text-align:center;color:#aaa6b7;font-size:11px;line-height:1.7;margin-top:20px}
+@media(max-width:520px){#home,#loading,#result{padding:25px 0}.input-card,.result-card{padding:22px;border-radius:24px}.date-row{gap:7px}.date-box select{padding:0 7px;font-size:14px}}
+</style>
+</head>
+<body>
+<section id="home">
+<div class="container hero">
+<div class="logo">CITY × 五行 · 趣味测试</div>
+<h1 class="title">哪个城市最旺你</h1>
+<p class="subtitle">输入你的出生日期，看看哪座城市与你的五行属性更契合。<br>这是一个轻松有趣的城市性格测试。</p>
+<div class="input-card">
+<div class="input-title">选择你的出生日期</div>
+<div class="date-row">
+<div class="date-box"><label>出生年份</label><select id="year"></select></div>
+<div class="date-box"><label>出生月份</label><select id="month"></select></div>
+<div class="date-box"><label>出生日期</label><select id="day"></select></div>
+</div>
+<button class="start-btn" onclick="startTest()">开始测试</button>
+<div class="tip">结果仅用于娱乐与城市性格探索，不代表真实命运预测</div>
+</div>
+</div>
+</section>
+
+<section id="loading">
+<div class="loading-card">
+<div class="loader"></div>
+<div class="loading-title">正在为你寻找城市</div>
+<div class="loading-text" id="loadingText">正在读取你的生日……</div>
+</div>
+</section>
+
+<section id="result">
+<div class="container">
+<div class="result-card">
+<div class="result-kicker">与你契合的城市</div>
+<div class="result-city" id="cityName"></div>
+<div class="result-type" id="cityType"></div>
+<div class="elements" id="elements"></div>
+<div class="reason" id="reason"></div>
+<div class="top3"><h3>你的城市 TOP 3</h3><div id="topList"></div></div>
+<div class="disclaimer">五行属性与城市匹配为娱乐性质的模拟算法，不构成真实的命理判断或人生建议。</div>
+</div>
+</div>
+</section>
+
+<script>
+const cities=[
+["北京","火","创新与节奏型","事业、效率、机会","北京的节奏感与行动力很强，适合希望获得推动力、建立目标感的人。"],
+["上海","水","流动与开放型","国际、商业、变化","上海强调流动、连接与开放，适合喜欢变化、交流和新机会的人。"],
+["广州","木","生长与包容型","发展、务实、烟火气","广州的包容和务实感很强，适合需要稳定成长空间的人。"],
+["深圳","火","速度与创造型","科技、创业、效率","深圳代表速度、创造和执行力，适合喜欢挑战和快速成长的人。"],
+["杭州","水","灵感与生活型","互联网、审美、松弛","杭州兼具水的流动感与生活感，适合重视灵感、审美和舒适度的人。"],
+["成都","木","松弛与生长型","生活、文化、包容","成都的生活节奏柔和，适合需要恢复能量并持续成长的人。"],
+["重庆","火","热烈与行动型","热情、冒险、活力","重庆的城市气质热烈直接，适合需要行动力与情绪感染力的人。"],
+["南京","土","沉稳与积累型","历史、教育、秩序","南京偏向沉稳与积累，适合希望长期建设、学习和沉淀的人。"],
+["武汉","火","连接与进取型","教育、交通、活力","武汉兼具开放与进取，适合希望拓展圈层和提升行动力的人。"],
+["西安","土","沉淀与厚重型","历史、学习、文化","西安的厚重感适合喜欢积累知识、建立长期目标的人。"],
+["苏州","金","精致与秩序型","制造、园林、品质","苏州强调秩序、精致和稳定发展，适合重视细节与生活品质的人。"],
+["青岛","水","清爽与开放型","海洋、生活、交流","青岛的海洋气质带来流动与开放感，适合需要舒展空间的人。"],
+["厦门","水","浪漫与松弛型","海岛、文艺、生活","厦门节奏舒缓，适合重视生活感、审美和情绪空间的人。"],
+["长沙","火","热情与表达型","娱乐、美食、活力","长沙气质热烈而有表达欲，适合喜欢社交和体验感的人。"],
+["郑州","土","连接与务实型","交通、物流、发展","郑州强调连接和务实，适合希望稳步推进计划的人。"],
+["天津","金","理性与秩序型","工业、港口、文化","天津兼具工业秩序与城市文化，适合喜欢规则和稳定节奏的人。"],
+["济南","土","温和与积累型","泉水、教育、生活","济南偏温和沉稳，适合长期学习与积累型发展。"],
+["福州","木","温润与生长型","山海、生态、生活","福州山海相依，气质温润，适合希望慢慢成长的人。"],
+["合肥","土","务实与进取型","科技、教育、产业","合肥强调产业和科研成长，适合目标明确、重视积累的人。"],
+["昆明","木","自然与舒展型","气候、生态、生活","昆明的自然环境与舒展感突出，适合需要平衡节奏的人。"],
+["大连","水","海洋与秩序型","海滨、开放、生活","大连的海洋气质和秩序感兼具，适合追求开阔与稳定的人。"],
+["宁波","金","务实与精致型","港口、制造、商业","宁波偏务实高效，适合重视执行与长期积累的人。"],
+["无锡","金","精致与稳定型","制造、生活、生态","无锡的气质偏稳定精致，适合追求生活品质与秩序的人。"],
+["佛山","金","制造与执行型","产业、商业、务实","佛山强调制造和执行，适合目标清晰、行动导向的人。"],
+["东莞","火","效率与产业型","制造、活力、机会","东莞的产业活力和效率感突出，适合喜欢快速进入状态的人。"],
+["珠海","水","舒适与开放型","海滨、生活、生态","珠海节奏舒缓，适合需要舒展空间与生活品质的人。"],
+["南宁","木","自然与包容型","生态、生活、开放","南宁自然气息浓厚，适合重视生活感和持续成长的人。"],
+["海口","水","自由与舒展型","海岛、阳光、生活","海口的开放和松弛感突出，适合需要释放压力的人。"],
+["三亚","火","阳光与体验型","海滨、旅行、活力","三亚阳光与活力明显，适合追求体验和行动感的人。"],
+["贵阳","水","清润与科技型","生态、科技、生活","贵阳兼具自然与新产业气质，适合希望平衡生活与发展的用户。"],
+["太原","土","稳定与厚重型","能源、历史、积累","太原偏稳定厚重，适合长期主义和积累型节奏。"],
+["石家庄","土","务实与连接型","交通、产业、生活","石家庄强调连接和务实，适合希望稳定推进目标的人。"],
+["哈尔滨","水","开阔与浪漫型","冰雪、文化、体验","哈尔滨气质鲜明，适合喜欢独特体验与文化氛围的人。"],
+["长春","木","安静与生长型","汽车、教育、生活","长春节奏相对沉静，适合学习、积累和稳定成长。"],
+["沈阳","金","工业与执行型","产业、历史、机会","沈阳强调产业基础与执行力，适合务实推进型的人。"],
+["兰州","土","沉淀与坚韧型","山河、文化、生活","兰州气质厚实，适合需要沉淀和建立韧性的人。"],
+["乌鲁木齐","火","开阔与探索型","边疆、文化、旅行","乌鲁木齐空间感和探索感突出，适合喜欢新鲜体验的人。"],
+["呼和浩特","土","开阔与稳定型","草原、生活、文化","呼和浩特强调开阔和稳定，适合需要空间与长期节奏的人。"],
+["拉萨","火","纯粹与体验型","高原、文化、旅行","拉萨城市体验鲜明，适合喜欢独特环境和精神体验的人。"],
+["银川","土","宁静与积累型","生态、生活、文化","银川节奏相对宁静，适合沉淀和长期规划。"],
+["泉州","木","包容与生长型","商业、文化、生活","泉州兼具商业活力和文化包容，适合持续发展的人。"],
+["烟台","水","海滨与稳定型","海洋、生活、产业","烟台的海滨气质与稳定感兼具，适合平衡生活与事业的人。"],
+["南昌","火","活力与进取型","教育、生活、发展","南昌有较强的年轻活力，适合希望保持行动感的人。"],
+["洛阳","土","历史与沉淀型","文化、历史、生活","洛阳适合喜欢文化积累、安静生活和长期成长的人。"],
+["嘉兴","水","温润与连接型","江南、生活、产业","嘉兴气质温润，适合喜欢稳定又不失流动的人。"],
+["常州","金","稳定与效率型","制造、生活、产业","常州强调效率与稳定，适合执行和积累型发展。"],
+["徐州","土","连接与坚韧型","交通、产业、历史","徐州的连接属性明显，适合目标明确、稳步推进的人。"],
+["温州","火","创业与行动型","商业、创业、活力","温州强调商业行动和创业精神，适合行动派。"],
+["绍兴","木","文化与生长型","江南、文化、生活","绍兴兼具文化底蕴与生活感，适合温和成长型节奏。"],
+["中山","木","舒适与发展型","生活、产业、生态","中山生活感与产业发展并存，适合平衡型选择。"]
+];
+
+const elementMap={
+"金":["金","水"],"木":["木","火"],"水":["水","木"],"火":["火","土"],"土":["土","金"]
+};
+
+function init(){
+ const y=document.getElementById("year"),m=document.getElementById("month"),d=document.getElementById("day");
+ for(let i=new Date().getFullYear();i>=1950;i--){let o=document.createElement("option");o.value=i;o.textContent=i+"年";y.appendChild(o)}
+ for(let i=1;i<=12;i++){let o=document.createElement("option");o.value=i;o.textContent=i+"月";m.appendChild(o)}
+ for(let i=1;i<=31;i++){let o=document.createElement("option");o.value=i;o.textContent=i+"日";d.appendChild(o)}
+ y.value=2005;m.value=1;d.value=1;
+}
+function profile(y,m,d){
+ const n=String(y)+String(m).padStart(2,"0")+String(d).padStart(2,"0");
+ const sum=[...n].reduce((a,b)=>a+Number(b),0);
+ const main=["金","木","水","火","土"][sum%5];
+ const second=["金","木","水","火","土"][(y+m+d)%5];
+ return {main,second,seed:sum*31+y*7+m*13+d};
+}
+function score(city,p){
+ const [name,e1,type,tags,desc]=city;
+ let s=0;
+ if(e1===p.main)s+=12;
+ if(elementMap[p.main]?.includes(e1))s+=6;
+ if(e1===p.second)s+=5;
+ const e2=elementMap[e1]?.[1];
+ if(e2===p.main)s+=2;
+ s+=((p.seed+name.length*17)%100)/100;
+ return s;
+}
+function startTest(){
+ const y=+document.getElementById("year").value,m=+document.getElementById("month").value,d=+document.getElementById("day").value;
+ const p=profile(y,m,d);
+ const ranked=cities.map(c=>({c,s:score(c,p)})).sort((a,b)=>b.s-a.s);
+ document.getElementById("home").style.display="none";
+ document.getElementById("loading").style.display="flex";
+ const msgs=["正在读取你的生日……","正在分析你的五行属性……","正在寻找与你契合的城市……","正在计算城市能量……","马上就要找到答案了……"];
+ let i=0;
+ const text=document.getElementById("loadingText");
+ text.textContent=msgs[0];
+ const timer=setInterval(()=>{i=(i+1)%msgs.length;text.textContent=msgs[i]},280);
+ setTimeout(()=>{clearInterval(timer);document.getElementById("loading").style.display="none";showResult(ranked,p)},1200);
+}
+function showResult(ranked,p){
+ const [name,e,type,tags,desc]=ranked[0].c;
+ document.getElementById("result").style.display="block";
+ document.getElementById("cityName").textContent=name;
+ document.getElementById("cityType").textContent=type+" · "+tags;
+ document.getElementById("elements").innerHTML="<span class='element'>你的主五行："+p.main+"</span><span class='element'>辅助五行："+p.second+"</span><span class='element'>城市属性："+e+"</span>";
+ document.getElementById("reason").innerHTML="<strong>为什么是这里？</strong><br>"+desc+"<br><br>按照本测试的模拟规则，你的生日对应的主要五行是 <strong>"+p.main+"</strong>，而这座城市的气质与之具有较好的匹配关系。";
+ document.getElementById("topList").innerHTML=ranked.slice(0,3).map((x,i)=>"<div class='top-item'><span>"+(i+1)+"　"+x.c[0]+"</span><span class='badge'>契合度 "+Math.round(x.s)+"</span></div>").join("");
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+init();
+</script>
+</body>
+</html>
